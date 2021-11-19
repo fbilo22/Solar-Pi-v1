@@ -1,0 +1,98 @@
+; Sample of push-to-db.ini file
+; Should be stored in /etc/solarpi/
+[app]
+param=none
+
+[mqtt.broker]
+mqtt_broker=192.168.4.1
+mqtt_port=1883
+mqtt_keepalive=45
+username=engineer
+password=domdom2222
+
+[lazywriter]
+; if the MessageQueue is filled with an entry for more x seconds
+; then activate the LazyWriter to write the data.
+MaxQueueLatency=120
+; if the MessageQueue reach the x entries
+; then activate the LazyWriter to write the data.
+MaxQueueSize=10
+; seconds to wait after processing the message queue (or skip
+; message queue processing)
+PauseAfterProcess=2
+
+[connector.sqlitedb]
+class=SqliteConnector
+db=/var/local/sqlite/solarpi.db
+
+[mqtt.capture.0]
+subscribe=12v/meter/#,5v/meter/#,solarpi/#
+class=MqttTopicCapture
+storage=sqlitedb.topicmsg
+
+[mqtt.capture.1]
+subscribe=12v/meter/watts,12v/meter/volts,12v/meter/amps
+class=MqttTimeserieCapture
+storage=sqlitedb.ts_12v
+
+[mqtt.capture.2]
+subscribe=5v/meter/watts,5v/meter/volts,5v/meter/amps
+class=MqttTimeserieCapture
+storage=sqlitedb.ts_5v
+
+[mqtt.capture.3]
+subscribe=solarpi/temp,solarpi/lum/#
+class=MqttTimeserieCapture
+storage=sqlitedb.ts_solarpi
+
+[mqtt.capture.4]
+subscribe=connect/#
+class=MqttTimeserieCapture
+storage=sqlitedb.ts_connect
+
+[loggers]
+; root - logger de l'application
+; connector - logger des connecteurs DB
+; pmq - process_message_queue() du LazyWriter
+;       Affiche une info très utile sur les messages
+;       à sauver, par quelle classe et sur quel connecteur
+keys=root,connector,pmq
+
+[handlers]
+keys=console,logfile
+
+[formatters]
+keys=default
+
+[logger_root]
+; DEBUG, INFO, WARNING, ERROR, CRITICAL ou NOTSET
+; utiliser level=NOTSET pour tous les messages
+; utiliser level=INFO pour suivre les msq MQTT entrant et traitement par LazyWriter
+level=NOTSET
+handlers=console,logfile
+
+[logger_connector]
+level=ERROR
+handlers=console,logfile
+qualname=connector
+
+[logger_pmq]
+level=ERROR
+handlers=console,logfile
+qualname=pmq
+
+[handler_console]
+class=StreamHandler
+level=NOTSET
+formatter=default
+args=(sys.stdout,)
+
+[handler_logfile]
+class=FileHandler
+level=NOTSET
+formatter=default
+args=('/var/log/solarpi/push-to-db.log', 'w')
+
+[formatter_default]
+format=%(asctime)s %(levelname)s %(message)s
+datefmt=

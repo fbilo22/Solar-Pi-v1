@@ -1,0 +1,11 @@
+[Unit]
+Description=MQTT database storage service for solarpi project
+After=multi-user.target
+Wants=mosquitto.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python /home/pi/python/push-to-db/push-to-db.py
+
+[Install]
+WantedBy=multi-user.target
